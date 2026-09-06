@@ -1,0 +1,35 @@
+# Blueprint Render. Depose ce depot sur GitHub, puis dans Render :
+# New > Blueprint > choisis le depot. Render lit ce fichier et cree le service.
+#
+# Les secrets sont marques sync: false : Render les demande a la creation et ne
+# les ecrit jamais dans le depot. Ne mets jamais un jeton Monarch dans ce
+# fichier — il finirait dans l'historique Git.
+services:
+  - type: web
+    name: monarch-mcp-remote
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # starter = 7 $/mois, pas de mise en veille. Le plan free s'endort au bout
+    # de 15 min d'inactivite : le premier appel MCP prend alors ~1 min et
+    # certains clients abandonnent avant. Voir le guide, section hebergement.
+    plan: starter
+    region: ohio
+    healthCheckPath: /healthz
+    autoDeploy: false
+    envVars:
+      # Secret d'acces au serveur MCP (different du jeton Monarch).
+      - key: MCP_AUTH_TOKEN
+        generateValue: true
+      # Session Monarch : renseigne UNE de ces trois variables.
+      - key: MONARCH_SESSION_JSON
+        sync: false
+      - key: MONARCH_COOKIE
+        sync: false
+      - key: MONARCH_TOKEN
+        sync: false
+      - key: MONARCH_DEVICE_UUID
+        sync: false
+      # Mets 1 pour desactiver les 24 outils d'ecriture. Laisse vide pour
+      # garder l'ecriture (tags, categories, budgets, regles).
+      - key: MONARCH_MCP_READ_ONLY
+        value: ""
